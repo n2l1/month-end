@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Survive from the 25th to the 25th. Dodge debit orders, bank fees and the cousin 'till Friday.">
+<meta property="og:title" content="Month-End: can you survive until the next 25th?">
+<meta property="og:description" content="Dodge debit orders, bank fees and load shedding. Beat my score.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://YOUR-LINK">
+<meta property="og:image" content="https://YOUR-LINK/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<script defer src="/_vercel/insights/script.js"></script>
+<title>Month-End: survive from the 25th to the 25th</title>
+<style>
+:root{--bg:#FFC21A;--ink:#1B1B2F;--card:#FFFFFF;--debit:#E8344E;--gain:#0B8F7A;--ground:#1B1B2F;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1B1B2F;--ink:#FFC21A;--card:#2A2A45;--ground:#FFC21A}}
+:root[data-theme="dark"]{--bg:#1B1B2F;--ink:#FFC21A;--card:#2A2A45;--ground:#FFC21A}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:"Arial Black","Segoe UI",system-ui,sans-serif;font-weight:900;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:manipulation;user-select:none}
+#wrap{position:relative;width:min(100%,420px);height:100%;max-height:760px}
+canvas{width:100%;height:100%;display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:14px;background:var(--bg)}
+.ov.hide{display:none}
+h1{font-size:44px;line-height:.95;margin:0;letter-spacing:-1px}
+p{font-family:"Segoe UI",system-ui,sans-serif;font-weight:600;margin:0;max-width:30ch;line-height:1.35}
+.tribes{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+button{font:inherit;font-size:16px;color:var(--bg);background:var(--ink);border:3px solid var(--ink);border-radius:10px;padding:14px 10px;cursor:pointer}
+button.t{background:transparent;color:var(--ink)}
+button.t.on{background:var(--ink);color:var(--bg)}
+button:focus-visible{outline:3px solid var(--debit);outline-offset:2px}
+#res{background:var(--card);color:var(--ink);border:3px solid var(--ink);border-radius:12px;padding:16px;width:100%;font-size:18px;line-height:1.3}
+#res b{display:block;font-size:34px}
+.row{display:flex;gap:10px;width:100%}.row button{flex:1}
+#board{font-family:"Segoe UI",system-ui,sans-serif;font-weight:600;font-size:14px;text-align:left;width:100%}#board b{display:block;margin-bottom:4px}
+small{font-family:"Segoe UI",system-ui,sans-serif;font-weight:600;opacity:.75}
+</style>
+</head>
+<body>
+<div id="wrap">
+<canvas id="c" width="360" height="640" aria-label="Month-End game"></canvas>
+
+<div class="ov" id="start">
+<h1>MONTH-<br>END</h1>
+<p id="chal" style="display:none;background:var(--card);border:3px solid var(--ink);border-radius:10px;padding:10px 12px"></p>
+<p>Payday is the 25th. Everyone wants a piece. Tap to jump. Reach the next 25th with money left.</p>
+<p>Pick your bank tribe:</p>
+<div class="tribes" id="tribes"></div>
+<button id="go" style="width:100%">Start the month</button>
+<small>Parody banks. No real accounts. No real money.</small>
+</div>
+
+<div class="ov hide" id="end">
+<h1 id="etitle"></h1>
+<div id="res"></div>
+<div id="board"></div>
+<div class="row"><button id="wa">Send to WhatsApp</button><button id="cp" class="t">Copy</button></div>
+<button id="again" class="t" style="width:100%">Run it again</button>
+</div>
+</div>
+
+<script>
+(function(){
+var TRIBES=["Capitech","First Nationwide","Standard Bunk","Absolutely"];
+var tribe=TRIBES[0];
+var cv=document.getElementById("c"),cx=cv.getContext("2d"),W=360,H=640,GY=500;
+var best=0;try{best=+localStorage.getItem("me_best")||0}catch(e){}
+var CH=0,CT="";try{var q=new URLSearchParams(location.search);CH=Math.max(0,Math.min(99999,+q.get("s")||0));CT=(q.get("t")||"").slice(0,20).replace(/[^\w ]/g,"")}catch(e){}
+
+var SB_URL="",SB_KEY=""; /* paste Supabase URL + anon key (see README) */
+function sb(path,o){if(!SB_URL)return Promise.resolve(null);o=o||{};return fetch(SB_URL+"/rest/v1/"+path,{method:o.m||"GET",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:o.b?JSON.stringify(o.b):undefined}).then(function(r){return o.m?null:r.json()}).catch(function(){return null})}
+function ev(n){sb("events",{m:"POST",b:{name:n,tribe:tribe,from_challenge:CH>0}})}
+var tb=document.getElementById("tribes");
+TRIBES.forEach(function(n,i){var b=document.createElement("button");b.className="t"+(i?"":" on");b.textContent=n;
+b.onclick=function(){tribe=n;[].forEach.call(tb.children,function(x){x.classList.remove("on")});b.classList.add("on")};tb.appendChild(b)});
+
+var OB=[
+{e:"\uD83E\uDDFE",n:"Debit order",c:350,w:40,h:44},
+{e:"\uD83D\uDCB3",n:"Bank fee",c:69,w:34,h:34},
+{e:"\uD83D\uDD6F\uFE0F",n:"Load shedding",c:120,w:36,h:44},
+{e:"\uD83E\uDD32",n:"Cousin 'till Friday",c:200,w:40,h:44},
+{e:"\uD83D\uDE95",n:"Taxi fare hike",c:90,w:46,h:36}
+];
+var S,raf,last,flash=0,msg="",msgT=0,hit={};
+
+function reset(){S={t:0,money:3500,y:GY-40,vy:0,on:true,obs:[],gain:[],spawn:1,gs:2.5,alive:true,hits:{}};flash=0;msg="";}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function fmt(n){return "R"+Math.round(n).toLocaleString("en-ZA").replace(/\u00a0/g," ")}
+function jump(){if(!S||!S.alive)return;if(S.on){S.vy=-640;S.on=false}}
+function day(){return Math.min(30,1+Math.floor(S.t/3))}
+
+function loop(ts){
+ var dt=Math.min(.033,(ts-last)/1000||0);last=ts;
+ if(S.alive)step(dt);draw();
+ if(S.alive)raf=requestAnimationFrame(loop);
+}
+function step(dt){
+ S.t+=dt;
+ S.vy+=1900*dt;S.y+=S.vy*dt;
+ if(S.y>=GY-40){S.y=GY-40;S.vy=0;S.on=true}
+ var d=day(),sp=210+d*5;
+ S.spawn-=dt;
+ if(S.spawn<=0){var o=OB[Math.floor(Math.random()*OB.length)];
+  S.obs.push({x:W+20,o:o});S.spawn=Math.max(.7,1.5-d*.02)+Math.random()*.8}
+ S.gs-=dt;
+ if(S.gs<=0){S.gain.push({x:W+20,y:GY-120-Math.random()*50});S.gs=3+Math.random()*3}
+ var px=70,pw=30,ph=40;
+ S.obs.forEach(function(b){b.x-=sp*dt;
+  if(!b.d&&b.x<px+pw&&b.x+b.o.w>px&&S.y+ph>GY-b.o.h+6){b.d=1;S.money-=b.o.c;flash=.25;msg="-"+fmt(b.o.c)+" "+b.o.n;msgT=1.2;S.hits[b.o.n]=(S.hits[b.o.n]||0)+1}});
+ S.gain.forEach(function(g){g.x-=sp*dt;
+  if(!g.d&&g.x<px+pw&&g.x+34>px&&S.y<g.y+34&&S.y+ph>g.y){g.d=1;S.money+=250;msg="+R250 side hustle";msgT=1.2}});
+ S.obs=S.obs.filter(function(b){return b.x>-60&&!b.d});
+ S.gain=S.gain.filter(function(g){return g.x>-60&&!g.d});
+ if(flash>0)flash-=dt;if(msgT>0)msgT-=dt;
+ if(S.money<0){S.money=0;finish(false)}
+ else if(S.t>=90){finish(true)}
+}
+function draw(){
+ var bg=css("--bg"),ink=css("--ink"),deb=css("--debit"),gain=css("--gain");
+ cx.fillStyle=flash>0?deb:bg;cx.fillRect(0,0,W,H);
+ cx.fillStyle=ink;cx.textAlign="left";cx.font="900 14px Arial Black,sans-serif";
+ cx.fillText("DAY "+day()+" / 30",16,34);
+ cx.textAlign="right";cx.fillText("BEST "+fmt(best),W-16,34);
+ cx.textAlign="center";cx.font="900 54px Arial Black,sans-serif";cx.fillText(fmt(S.money),W/2,110);
+ cx.font="700 14px Segoe UI,sans-serif";cx.fillText(tribe+" tribe",W/2,134);if(CH>0)cx.fillText("Beat "+fmt(CH),W/2,182);
+ cx.fillStyle=ink;cx.fillRect(16,150,W-32,8);cx.fillStyle=gain;cx.fillRect(16,150,(W-32)*Math.min(1,S.t/90),8);
+ if(msgT>0){cx.fillStyle=ink;cx.font="900 18px Arial Black,sans-serif";cx.fillText(msg,W/2,200)}
+ cx.fillStyle=css("--ground");cx.fillRect(0,GY,W,6);
+ cx.textAlign="left";cx.font="36px serif";
+ cx.fillText("\uD83D\uDEB6",70,S.y+36);
+ S.obs.forEach(function(b){cx.font=b.o.h+"px serif";cx.fillText(b.o.e,b.x,GY-2)});
+ S.gain.forEach(function(g){cx.font="34px serif";cx.fillText("\uD83D\uDCB0",g.x,g.y+30)});
+}
+function finish(won){
+ S.alive=false;S.won=won;cancelAnimationFrame(raf);
+ var m=won?S.money:0,d=day();
+ if(m>best){best=m;try{localStorage.setItem("me_best",best)}catch(e){}}
+ var worst="",wn=0;for(var k in S.hits){if(S.hits[k]>wn){wn=S.hits[k];worst=k}}
+ var title=won?"YOU SURVIVED":"DAY "+d+": BROKE";
+ var line=won?"I survived month-end with "+fmt(m)+" left.":"I went broke on day "+d+" of month-end.";
+ var txt=line+(worst?" "+worst+" got me "+wn+"x.":"")+" "+tribe+" tribe. Beat me:";
+ S.txt=txt;ev("finish");
+ sb("runs",{m:"POST",b:{tribe:tribe,score:Math.round(m),won:won,day:d}}).then(function(){return sb("tribe_board?select=*&order=avg_score.desc")}).then(function(rows){
+  var el=document.getElementById("board");if(!rows||!rows.length||!rows.map){el.textContent="";return}
+  el.innerHTML="<b>Tribe standings (avg score)</b>"+rows.map(function(x,i){return "<div>"+(i+1)+". "+x.tribe+" "+fmt(x.avg_score)+" ("+x.plays+" runs)</div>"}).join("")});
+ document.getElementById("etitle").textContent=title;
+ document.getElementById("res").innerHTML="<b>"+fmt(m)+"</b>"+(worst?worst+" hit you "+wn+"x":"Clean run")+"<br>"+tribe+" tribe"+(CH>0?"<br>"+(m>CH?"You beat the challenge by "+fmt(m-CH):"Challenge: "+fmt(CH)+". Not yet."):"");
+ document.getElementById("end").classList.remove("hide");
+}
+function full(){var m=S.won?Math.round(S.money):0;return S.txt+" "+location.origin+location.pathname+(m>0?"?s="+m+"&t="+encodeURIComponent(tribe):"")}
+document.getElementById("wa").onclick=function(){ev("share");window.open("https://wa.me/?text="+encodeURIComponent(full()),"_blank")};
+document.getElementById("cp").onclick=function(){var b=this;ev("share");try{navigator.clipboard.writeText(full()).then(function(){b.textContent="Copied"})}catch(e){b.textContent="Copy failed"}};
+function start(){
+ document.getElementById("start").classList.add("hide");document.getElementById("end").classList.add("hide");
+ ev("start");reset();last=performance.now();raf=requestAnimationFrame(loop);
+}
+document.getElementById("go").onclick=start;
+document.getElementById("again").onclick=start;
+cv.addEventListener("pointerdown",jump);
+window.addEventListener("keydown",function(e){if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump()}});
+if(CH>0){var ce=document.getElementById("chal");ce.style.display="block";ce.textContent=(CT?CT+" tribe":"A friend")+" finished with "+fmt(CH)+". Beat it.";}
+ev("open");if(CH>0)ev("challenge_open");
+reset();draw();
+})();
+</script>
+</body>
+</html>
