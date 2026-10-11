@@ -82,13 +82,17 @@ var OB=[
 {e:"\uD83D\uDCB3",n:"Bank fee",c:69,w:34,h:34},
 {e:"\uD83D\uDD6F\uFE0F",n:"Load shedding",c:120,w:36,h:44},
 {e:"\uD83E\uDD32",n:"Cousin 'till Friday",c:200,w:40,h:44},
-{e:"\uD83D\uDE95",n:"Taxi fare hike",c:90,w:46,h:36}
+{e:"\uD83D\uDE95",n:"Taxi fare hike",c:90,w:46,h:36},
+{e:"\u26FD",n:"Petrol hike",c:150,w:36,h:40},
+{e:"\uD83C\uDFE0",n:"Bond repayment",c:400,w:44,h:44},
+{e:"\uD83C\uDF92",n:"School fees",c:300,w:38,h:42}
 ];
 var S,raf,last,flash=0,msg="",msgT=0,hit={};
 
 function reset(){S={t:0,money:3500,y:GY-40,vy:0,on:true,obs:[],gain:[],spawn:1,gs:2.5,alive:true,hits:{}};flash=0;msg="";}
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 function fmt(n){return "R"+Math.round(n).toLocaleString("en-ZA").replace(/\u00a0/g," ")}
+function cst(o){return Math.round(o.c*(o.n==="Bond repayment"&&S.rh?1.12:1))}
 function jump(){if(!S||!S.alive)return;if(S.on){S.vy=-640;S.on=false}}
 function day(){return Math.min(30,1+Math.floor(S.t/3))}
 
@@ -98,7 +102,7 @@ function loop(ts){
  if(S.alive)raf=requestAnimationFrame(loop);
 }
 function step(dt){
- S.t+=dt;
+ S.t+=dt;if(!S.rh&&day()>=15){S.rh=1;msg="RATE HIKE: bonds cost more";msgT=2.5}
  S.vy+=1900*dt;S.y+=S.vy*dt;
  if(S.y>=GY-40){S.y=GY-40;S.vy=0;S.on=true}
  var d=day(),sp=210+d*5;
@@ -109,7 +113,7 @@ function step(dt){
  if(S.gs<=0){S.gain.push({x:W+20,y:GY-120-Math.random()*50});S.gs=3+Math.random()*3}
  var px=70,pw=30,ph=40;
  S.obs.forEach(function(b){b.x-=sp*dt;
-  if(!b.d&&b.x<px+pw&&b.x+b.o.w>px&&S.y+ph>GY-b.o.h+6){b.d=1;S.money-=b.o.c;flash=.25;msg="-"+fmt(b.o.c)+" "+b.o.n;msgT=1.2;S.hits[b.o.n]=(S.hits[b.o.n]||0)+1}});
+  if(!b.d&&b.x<px+pw&&b.x+b.o.w>px&&S.y+ph>GY-b.o.h+6){b.d=1;var cc=cst(b.o);S.money-=cc;flash=.25;msg="-"+fmt(cc)+" "+b.o.n;msgT=1.2;S.hits[b.o.n]=(S.hits[b.o.n]||0)+1}});
  S.gain.forEach(function(g){g.x-=sp*dt;
   if(!g.d&&g.x<px+pw&&g.x+34>px&&S.y<g.y+34&&S.y+ph>g.y){g.d=1;S.money+=250;msg="+R250 side hustle";msgT=1.2}});
  S.obs=S.obs.filter(function(b){return b.x>-60&&!b.d});
