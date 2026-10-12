@@ -67,13 +67,13 @@ small{font-family:"Segoe UI",system-ui,sans-serif;font-weight:600;opacity:.75}
 
 <script>
 (function(){
-var TRIBES=["Capitech","First Nationwide","Standard Bunk","Absolutely"];
+var TRIBES=["Capitech","First Nationwide","Standard Bunk","Absolutely","Afri-Cash-N-Go","Invest-Etc"];
 var tribe=TRIBES[0];
 var cv=document.getElementById("c"),cx=cv.getContext("2d"),W=360,H=640,GY=500;
 var best=0;try{best=+localStorage.getItem("me_best")||0}catch(e){}
-var CH=0,CT="";try{var q=new URLSearchParams(location.search);CH=Math.max(0,Math.min(99999,+q.get("s")||0));CT=(q.get("t")||"").slice(0,20).replace(/[^\w ]/g,"")}catch(e){}
+var CH=0,CT="";try{var q=new URLSearchParams(location.search);CH=Math.max(0,Math.min(99999,+q.get("s")||0));CT=(q.get("t")||"").slice(0,20).replace(/[^\w \-]/g,"")}catch(e){}
 
-var SB_URL="",SB_KEY=""; /* paste Supabase URL + anon key (see README) */
+var SB_URL="https://wdksxntbuqvdoghyzefl.supabase.co",SB_KEY="sb_publishable_dC1GcGDYs7a9UpAffVV9wQ_TOfZeWcC"; /* paste Supabase URL + anon key (see README) */
 function sb(path,o){if(!SB_URL)return Promise.resolve(null);o=o||{};return fetch(SB_URL+"/rest/v1/"+path,{method:o.m||"GET",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:o.b?JSON.stringify(o.b):undefined}).then(function(r){return o.m?null:r.json()}).catch(function(){return null})}
 function ev(n){sb("events",{m:"POST",b:{name:n,tribe:tribe,from_challenge:CH>0}})}
 var nick="";try{nick=localStorage.getItem("me_nick")||""}catch(e){}
